@@ -13,16 +13,20 @@ class ComputationThread(QThread):
     finished = pyqtSignal()
 
     def run(self):
-        for i in range(5):
-            print(f'Iteration {i+1}/5 running...')
-            # Heavy GPU computation (if GPU available)
-            if torch.cuda.is_available():
-                gpu_tensor = torch.randn((10000, 10000), device='cuda')
-                for _ in range(10):
-                    gpu_result = torch.mm(gpu_tensor, gpu_tensor)
-                torch.cuda.synchronize()
-                del gpu_tensor, gpu_result
+        gpu_tensors = []  # Keep tensors alive to increase VRAM usage visibly
 
+        for i in range(3):
+            print(f'Iteration {i+1}/5 running...')
+
+            if torch.cuda.is_available():
+                # Allocate a large tensor and keep it alive to see VRAM usage rise
+                gpu_tensor = torch.randn((12000, 12000), device='cuda')
+                gpu_tensors.append(gpu_tensor)  # Keep reference to consume VRAM
+
+                # Perform computations to increase GPU load visibly
+                for _ in range(20):
+                    gpu_tensor = torch.mm(gpu_tensor, gpu_tensor)
+                torch.cuda.synchronize()
 
             print("CPU computation")
             large_array = np.random.rand(4000, 4000)
@@ -30,7 +34,14 @@ class ComputationThread(QThread):
             del large_array
 
             time.sleep(1)
+
+        # Clear tensors to visibly drop VRAM usage at the end
+        del gpu_tensors
+        torch.cuda.empty_cache()
+        time.sleep(10)
+
         self.finished.emit()
+
 
 class ExampleApp(QWidget):
     def __init__(self):

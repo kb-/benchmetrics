@@ -30,7 +30,7 @@ uv pip install -e .
 To install additional dependencies for running the **example**, use:
 
 ```sh
-uv pip install -e . --extra example
+uv pip install -e .[example]
 ```
 
 ### 📞 Dependencies

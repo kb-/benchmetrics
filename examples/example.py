@@ -5,65 +5,66 @@ import torch
 from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QLabel
 from PyQt6.QtCore import QThread, pyqtSignal
 from benchmetrics import Benchmark
+import multiprocessing
 
+multiprocessing.set_start_method('spawn', force=True)
 
 class ComputationThread(QThread):
     finished = pyqtSignal()
 
     def run(self):
-        # Actual heavy computation to utilize CPU, RAM, and GPU (if available)
         for i in range(5):
             print(f'Iteration {i+1}/5 running...')
-            # Heavy GPU computation (if GPU available)
             if torch.cuda.is_available():
-                gpu_tensor = torch.randn((10000, 10000), device='cuda')
-                for _ in range(10):
+                gpu_tensor = torch.randn((5000, 5000), device='cuda')
+                for _ in range(5):
                     gpu_result = torch.mm(gpu_tensor, gpu_tensor)
                 torch.cuda.synchronize()
                 del gpu_tensor, gpu_result
 
-            # Heavy CPU and RAM usage
-            large_array = np.random.rand(5000, 5000)
+            large_array = np.random.rand(4000, 4000)
             _ = np.linalg.svd(large_array)
             del large_array
 
             time.sleep(1)
-
         self.finished.emit()
-
 
 class ExampleApp(QWidget):
     def __init__(self):
         super().__init__()
         self.init_ui()
-        self.benchmark = Benchmark(interval=0.5)
+        self.benchmark = Benchmark(interval=1.0, dashboard=True)  # corrected parameter
         self.thread = ComputationThread()
-        self.thread.finished.connect(self.computation_finished)
+        self.thread.finished.connect(self.end_computation)  # corrected method name
 
     def init_ui(self):
         self.setWindowTitle('PyQt6 Benchmark Example')
         layout = QVBoxLayout()
-
         self.status_label = QLabel('Status: Idle')
         layout.addWidget(self.status_label)
 
         self.start_button = QPushButton('Start Heavy Computation')
-        self.start_button.clicked.connect(self.run_heavy_computation)
+        self.start_button.clicked.connect(self.run_computation)
         layout.addWidget(self.start_button)
-
         self.setLayout(layout)
 
-    def run_heavy_computation(self):
+    def run_computation(self):
         self.status_label.setText('Status: Running heavy computation...')
-        self.benchmark.start()
         self.start_button.setEnabled(False)
+        self.benchmark.start()
+
+        self.thread = ComputationThread()
+        self.thread.finished.connect(self.end_computation)
         self.thread.start()
 
-    def computation_finished(self):
+    def end_computation(self):
         self.benchmark.stop()
         self.status_label.setText('Status: Completed')
         self.start_button.setEnabled(True)
 
+    def closeEvent(self, event):
+        self.benchmark.stop()
+        event.accept()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

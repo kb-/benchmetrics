@@ -126,7 +126,7 @@ sys.exit(app.exec())
 
 ## 🐍 Compatibility
 
-- ✅ **Operating Systems**: Windows, Linux, macOS
+- ✅ **Operating Systems**: Windows, Linux
 - ✅ **Python versions**: Python 3.9+
 
 ---

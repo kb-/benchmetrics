@@ -11,6 +11,7 @@ dependencies = [
     "psutil>=7.0.0",
     "pynvml>=11.5.3",
     "pyqt6>=6.6.1",
+    "pywin32>=308",
     "torch>=1.13.1",
 ]
 

@@ -84,7 +84,7 @@ def collect_metrics(output_file, interval):
 
     nvmlShutdown()
 
-def start_collector(output_file="metrics_log.jsonl", interval=1.0):
+def start_collector(output_file="metrics_log.jsonl", interval=0.25):
     """Starts the metrics collection process as a daemon."""
     collector_process = mp.Process(
         target=collect_metrics,

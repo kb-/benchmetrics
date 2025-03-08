@@ -45,7 +45,7 @@ app.layout = html.Div([
     html.H3("Real-time Benchmark Metrics"),
     dcc.Graph(id='memory-usage'),
     dcc.Graph(id='load-percentages'),
-    dcc.Interval(id='interval-component', interval=2000, n_intervals=0)
+    dcc.Interval(id='interval-component', interval=1000, n_intervals=0)
 ])
 
 

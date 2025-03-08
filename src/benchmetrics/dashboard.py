@@ -37,16 +37,30 @@ def read_metrics():
                 continue
     return data
 
-benchmark_dashboard.layout = html.Div([
-    html.H3("Real-time Benchmark Metrics"),
-    dcc.Graph(id='memory-usage'),
-    dcc.Graph(id='load-percentages'),
-    
-    html.H4("Metrics Summary"),
-    html.Table([
-        html.Thead([
-            html.Tr([html.Th("Metric"), html.Th("Current"), html.Th("Min"), html.Th("Max")])
+benchmark_dashboard.layout = html.Div(style={'padding': '20px', 'fontFamily': 'Arial, sans-serif'}, children=[
+    html.H2("🚀 Real-time Benchmark Metrics Dashboard", style={'textAlign': 'center'}),
+
+    html.Div(style={
+        'display': 'flex', 'justifyContent': 'space-around', 'flexWrap': 'wrap'
+    }, children=[
+        html.Div(style={'width': '48%', 'minWidth': '400px'}, children=[
+            dcc.Graph(id='memory-usage'),
         ]),
+        html.Div(style={'width': '48%', 'minWidth': '400px'}, children=[
+            dcc.Graph(id='load-percentages'),
+        ]),
+    ]),
+
+    html.H3("📊 Metrics Summary", style={'textAlign': 'center', 'marginTop': '20px'}),
+    html.Table(style={
+        'width': '70%', 'margin': '0 auto', 'borderCollapse': 'collapse', 'boxShadow': '0 2px 5px #ccc'
+    }, children=[
+        html.Thead(html.Tr([
+            html.Th("Metric", style={'padding': '10px', 'borderBottom': '2px solid #ddd', 'backgroundColor': '#f0f0f0'}),
+            html.Th("Current", style={'padding': '10px', 'borderBottom': '2px solid #ddd', 'backgroundColor': '#f0f0f0'}),
+            html.Th("Min", style={'padding': '10px', 'borderBottom': '2px solid #ddd', 'backgroundColor': '#f0f0f0'}),
+            html.Th("Max", style={'padding': '10px', 'borderBottom': '2px solid #ddd', 'backgroundColor': '#f0f0f0'}),
+        ])),
         html.Tbody(id="metrics-summary")
     ]),
 
@@ -54,28 +68,36 @@ benchmark_dashboard.layout = html.Div([
 ])
 
 @benchmark_dashboard.callback(
-    [Output('memory-usage', 'figure'), Output('load-percentages', 'figure'), Output('metrics-summary', 'children')],
+    [Output('memory-usage', 'figure'),
+     Output('load-percentages', 'figure'),
+     Output('metrics-summary', 'children')],
     Input('interval-component', 'n_intervals')
 )
 def update_graphs(n):
     metrics = read_metrics()
     timestamps = [t - metrics["timestamp"][0] for t in metrics["timestamp"]] if metrics["timestamp"] else []
 
-    # Memory usage chart
+    # Memory usage figure
     memory_fig = go.Figure([
         go.Scatter(x=timestamps, y=metrics["ram_usage_gb"], name='RAM Usage (GB)'),
         go.Scatter(x=timestamps, y=metrics["swap_usage_gb"], name='Swap Usage (GB)'),
         go.Scatter(x=timestamps, y=metrics["gpu_mem_used_gb"], name='GPU VRAM Usage (GB)')
     ])
-    memory_fig.update_layout(title='Memory Usage (GB)', xaxis=dict(title='Time (s)'), yaxis=dict(title='GB'))
+    memory_fig.update_layout(
+        title='Memory Usage (GB)', xaxis=dict(title='Time (s)'), yaxis=dict(title='GB'),
+        margin=dict(l=40, r=40, t=40, b=40)
+    )
 
-    # Load percentages chart
+    # Load percentages figure
     load_fig = go.Figure([
         go.Scatter(x=timestamps, y=metrics["cpu_load_percent"], name='CPU Load (%)'),
         go.Scatter(x=timestamps, y=metrics["gpu_load_percent"], name='GPU Load (%)'),
         go.Scatter(x=timestamps, y=metrics["gpu_mem_load_percent"], name='GPU Memory Load (%)')
     ])
-    load_fig.update_layout(title='Load Percentages (%)', xaxis=dict(title='Time (s)'), yaxis=dict(title='%'))
+    load_fig.update_layout(
+        title='Load Percentages (%)', xaxis=dict(title='Time (s)'), yaxis=dict(title='%'),
+        margin=dict(l=40, r=40, t=40, b=40)
+    )
 
     # Metrics summary table
     def summarize(data):
@@ -88,11 +110,17 @@ def update_graphs(n):
             "GPU Load (%)": metrics["gpu_load_percent"],
             "GPU Memory Load (%)": metrics["gpu_mem_load_percent"],
             "RAM Usage (GB)": metrics["ram_usage_gb"],
+            "Swap Usage (GB)": metrics["swap_usage_gb"],
             "GPU VRAM Usage (GB)": metrics["gpu_mem_used_gb"],
         }
 
         for metric_name, values in summary_data.items():
             current, min_val, max_val = summarize(values)
-            summary_rows.append(html.Tr([html.Td(metric_name), html.Td(current), html.Td(min_val), html.Td(max_val)]))
+            summary_rows.append(html.Tr([
+                html.Td(metric_name, style={'padding': '8px', 'borderBottom': '1px solid #ddd'}),
+                html.Td(current, style={'padding': '8px', 'textAlign': 'center', 'borderBottom': '1px solid #ddd'}),
+                html.Td(min_val, style={'padding': '8px', 'textAlign': 'center', 'borderBottom': '1px solid #ddd'}),
+                html.Td(max_val, style={'padding': '8px', 'textAlign': 'center', 'borderBottom': '1px solid #ddd'}),
+            ]))
 
     return memory_fig, load_fig, summary_rows

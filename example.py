@@ -14,16 +14,18 @@ class ComputationThread(QThread):
         # Actual heavy computation to utilize CPU, RAM, and GPU (if available)
         for i in range(5):
             print(f'Iteration {i+1}/5 running...')
+            # Heavy GPU computation (if GPU available)
+            if torch.cuda.is_available():
+                gpu_tensor = torch.randn((10000, 10000), device='cuda')
+                for _ in range(10):
+                    gpu_result = torch.mm(gpu_tensor, gpu_tensor)
+                torch.cuda.synchronize()
+                del gpu_tensor, gpu_result
+
             # Heavy CPU and RAM usage
             large_array = np.random.rand(5000, 5000)
             _ = np.linalg.svd(large_array)
             del large_array
-
-            # Heavy GPU computation (if GPU available)
-            if torch.cuda.is_available():
-                gpu_tensor = torch.randn((5000, 5000), device='cuda')
-                gpu_result = torch.mm(gpu_tensor, gpu_tensor)
-                del gpu_tensor, gpu_result
 
             time.sleep(1)
 

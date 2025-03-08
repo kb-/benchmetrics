@@ -143,7 +143,7 @@ sys.exit(app.exec())
 To contribute or modify:
 
 ```sh
-uv pip install -e ".[dev]"
+uv pip install -e .[example]
 ```
 
 Run examples to validate changes:

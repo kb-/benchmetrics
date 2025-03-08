@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from PyQt6.QtWidgets import QApplication, QWidget, QPushButton, QVBoxLayout, QLabel
 from PyQt6.QtCore import QThread, pyqtSignal
-from benchmark import Benchmark
+from benchmetrics import Benchmark
 
 
 class ComputationThread(QThread):

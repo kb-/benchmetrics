@@ -1,5 +1,5 @@
 [project]
-name = "benchmark-py"
+name = "benchmetrics"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"

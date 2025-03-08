@@ -8,7 +8,6 @@ from pynvml import (
 )
 import win32pdh
 import json
-import os
 
 def get_cpu_usage(interval):
     """Measures total CPU usage over the specified interval using Windows PDH.

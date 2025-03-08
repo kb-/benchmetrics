@@ -15,7 +15,7 @@ resolution-markers = [
 ]
 
 [[package]]
-name = "benchmark-py"
+name = "benchmetrics"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [

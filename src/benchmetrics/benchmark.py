@@ -1,4 +1,4 @@
-from metrics_collector import start_collector
+from .metrics_collector import start_collector
 import os
 import signal
 

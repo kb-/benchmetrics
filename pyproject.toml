@@ -1,15 +1,19 @@
 [project]
 name = "benchmetrics"
 version = "0.1.0"
-description = "Add your description here"
+description = "A lightweight and non-blocking Python library for real-time system benchmarking, providing CPU, GPU, RAM, and Swap monitoring with an interactive dashboard."
 readme = "README.md"
 requires-python = ">=3.7"
 dependencies = [
-    "dash>=2.15.0",
     "numpy>=1.21.6",
-    "plotly>=5.18.0",
     "psutil>=7.0.0",
     "pynvml>=11.5.3",
+]
+
+[tool.uv.dependencies.example]
+dependencies = [
+    "dash>=2.15.0",
+    "plotly>=5.18.0",
     "pyqt6>=6.6.1",
     "pywin32>=308",
     "torch>=1.13.1",
@@ -24,3 +28,4 @@ torch = [
 name = "pytorch-cu124"
 url = "https://download.pytorch.org/whl/cu124"
 explicit = true
+

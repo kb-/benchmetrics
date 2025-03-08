@@ -6,41 +6,46 @@ from pynvml import (
     nvmlDeviceGetMemoryInfo, nvmlDeviceGetUtilizationRates,
     nvmlShutdown
 )
-import win32pdh
 import json
+import platform
+
+# Import Windows-specific module only if running on Windows
+if platform.system() == "Windows":
+    import win32pdh
+
 
 def get_cpu_usage(interval):
-    """Measures total CPU usage over the specified interval using Windows PDH.
-    
-    Uses the Windows 11 performance counter for hybrid systems:
-    \Processor Information(_Total)\% Processor Utility
-    """
-    query_handle = None
-    try:
-        # Open a PDH query and add the counter for normalized CPU usage.
-        query_handle = win32pdh.OpenQuery()
-        counter_handle = win32pdh.AddCounter(query_handle, r"\Processor Information(_Total)\% Processor Utility")
-        
-        # Initial collection to set up the counter.
-        win32pdh.CollectQueryData(query_handle)
-        time.sleep(interval)
-        # Second collection to calculate the usage.
-        win32pdh.CollectQueryData(query_handle)
-        
-        # Retrieve the CPU usage value.
-        # This call returns a tuple of (status, value)
-        _, cpu_usage = win32pdh.GetFormattedCounterValue(counter_handle, win32pdh.PDH_FMT_LONG)
-        return cpu_usage
-    except Exception as e:
-        print(f"Error in get_cpu_usage: {e}")
-        return 0
-    finally:
-        # Ensure that the query is closed.
-        if query_handle is not None:
-            try:
-                win32pdh.CloseQuery(query_handle)
-            except Exception as close_err:
-                print(f"Error closing PDH query: {close_err}")
+    """Measures total CPU usage over the specified interval."""
+
+    if platform.system() == "Windows":
+        # Use Windows PDH (Performance Data Helper)
+        query_handle = None
+        try:
+            query_handle = win32pdh.OpenQuery()
+            counter_handle = win32pdh.AddCounter(query_handle, r"\Processor Information(_Total)\% Processor Utility")
+
+            # Initial collection
+            win32pdh.CollectQueryData(query_handle)
+            time.sleep(interval)
+            win32pdh.CollectQueryData(query_handle)
+
+            # Retrieve the CPU usage value
+            _, cpu_usage = win32pdh.GetFormattedCounterValue(counter_handle, win32pdh.PDH_FMT_LONG)
+            return cpu_usage
+        except Exception as e:
+            print(f"Error in get_cpu_usage (Windows): {e}")
+            return 0
+        finally:
+            if query_handle is not None:
+                try:
+                    win32pdh.CloseQuery(query_handle)
+                except Exception as close_err:
+                    print(f"Error closing PDH query: {close_err}")
+
+    else:
+        # Linux & macOS alternative using psutil
+        return psutil.cpu_percent(interval=interval, percpu=False)
+
 
 def collect_metrics(output_file, interval):
     """Collects system metrics including CPU, RAM, Swap, and GPU usage."""
@@ -51,14 +56,14 @@ def collect_metrics(output_file, interval):
         while True:
             start_time = time.time()
 
-            # Use win32pdh to measure CPU usage over the specified interval.
+            # Select the correct CPU monitoring method
             cpu_load = get_cpu_usage(interval)
 
-            # Gather memory usage details.
-            ram = psutil.virtual_memory().used / (1024**2)
-            swap = psutil.swap_memory().used / (1024**2)
+            # Gather memory usage details
+            ram = psutil.virtual_memory().used / (1024**2)  # MB
+            swap = psutil.swap_memory().used / (1024**2)    # MB
 
-            # Gather GPU usage metrics.
+            # Gather GPU usage metrics
             gpu_mem = nvmlDeviceGetMemoryInfo(gpu_handle)
             gpu_util = nvmlDeviceGetUtilizationRates(gpu_handle)
 
@@ -76,12 +81,13 @@ def collect_metrics(output_file, interval):
             f.write(json.dumps(data) + "\n")
             f.flush()
 
-            # The CPU measurement already spans 'interval' seconds.
+            # Ensure the correct interval timing
             elapsed = time.time() - start_time
             if elapsed < interval:
                 time.sleep(interval - elapsed)
 
     nvmlShutdown()
+
 
 def start_collector(output_file="metrics_log.jsonl", interval=0.25):
     """Starts the metrics collection process as a daemon."""
@@ -92,6 +98,7 @@ def start_collector(output_file="metrics_log.jsonl", interval=0.25):
     )
     collector_process.start()
     return collector_process
+
 
 if __name__ == "__main__":
     # Example usage: Start collecting metrics.

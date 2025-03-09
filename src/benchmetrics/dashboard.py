@@ -2,6 +2,7 @@ import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output
 import plotly.graph_objs as go
+from plotly_resampler import FigureResampler
 import json
 import os
 
@@ -78,22 +79,20 @@ def update_graphs(n):
     timestamps = [t - metrics["timestamp"][0] for t in metrics["timestamp"]] if metrics["timestamp"] else []
 
     # Memory usage figure
-    memory_fig = go.Figure([
-        go.Scatter(x=timestamps, y=metrics["ram_usage_gb"], name='RAM Usage (GB)'),
-        go.Scatter(x=timestamps, y=metrics["swap_usage_gb"], name='Swap Usage (GB)'),
-        go.Scatter(x=timestamps, y=metrics["gpu_mem_used_gb"], name='GPU VRAM Usage (GB)')
-    ])
+    memory_fig = FigureResampler(go.Figure())
+    memory_fig.add_trace(go.Scatter(x=timestamps, y=metrics["ram_usage_gb"], name='RAM Usage (GB)'))
+    memory_fig.add_trace(go.Scatter(x=timestamps, y=metrics["swap_usage_gb"], name='Swap Usage (GB)'))
+    memory_fig.add_trace(go.Scatter(x=timestamps, y=metrics["gpu_mem_used_gb"], name='GPU VRAM Usage (GB)'))
     memory_fig.update_layout(
         title='Memory Usage (GB)', xaxis=dict(title='Time (s)'), yaxis=dict(title='GB'),
         margin=dict(l=40, r=40, t=40, b=40)
     )
 
     # Load percentages figure
-    load_fig = go.Figure([
-        go.Scatter(x=timestamps, y=metrics["cpu_load_percent"], name='CPU Load (%)'),
-        go.Scatter(x=timestamps, y=metrics["gpu_load_percent"], name='GPU Load (%)'),
-        go.Scatter(x=timestamps, y=metrics["gpu_mem_load_percent"], name='GPU Memory Load (%)')
-    ])
+    load_fig = FigureResampler(go.Figure())
+    load_fig.add_trace(go.Scatter(x=timestamps, y=metrics["cpu_load_percent"], name='CPU Load (%)'))
+    load_fig.add_trace(go.Scatter(x=timestamps, y=metrics["gpu_load_percent"], name='GPU Load (%)'))
+    load_fig.add_trace(go.Scatter(x=timestamps, y=metrics["gpu_mem_load_percent"], name='GPU Memory Load (%)'))
     load_fig.update_layout(
         title='Load Percentages (%)', xaxis=dict(title='Time (s)'), yaxis=dict(title='%'),
         margin=dict(l=40, r=40, t=40, b=40)

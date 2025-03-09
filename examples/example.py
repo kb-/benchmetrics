@@ -15,7 +15,7 @@ class ComputationThread(QThread):
     def run(self):
         gpu_tensors = []  # Keep tensors alive to increase VRAM usage visibly
 
-        for i in range(3):
+        for i in range(4):
             print(f'Iteration {i+1}/5 running...')
 
             if torch.cuda.is_available():
@@ -47,7 +47,7 @@ class ExampleApp(QWidget):
     def __init__(self):
         super().__init__()
         self.init_ui()
-        self.benchmark = Benchmark(interval=0.25, dashboard=True)  
+        self.benchmark = Benchmark(interval=0.02, dashboard=True)  
         self.thread = None  # initialize as None explicitly
 
     def init_ui(self):

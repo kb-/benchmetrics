@@ -1,3 +1,4 @@
+import logging
 import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output
@@ -7,6 +8,8 @@ import json
 import os
 
 benchmark_dashboard = dash.Dash(__name__)
+logging.getLogger("benchmetrics.dashboard").setLevel(logging.ERROR)
+logging.getLogger("werkzeug").setLevel(logging.ERROR)
 LOG_FILE = "metrics_log.jsonl"
 
 def read_metrics():
